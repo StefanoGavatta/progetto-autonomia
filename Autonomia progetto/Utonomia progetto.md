@@ -10,3 +10,11 @@
 - vari jumper wires
 - 6 led 
 
+### funzionamento bozza
+
+- il gioco runna su client 
+	-  invia dati al server in base a dove sta andando la pallina il punteggio e il goal di un giocatore
+
+### librerie utilizzate
+
+- pygame
