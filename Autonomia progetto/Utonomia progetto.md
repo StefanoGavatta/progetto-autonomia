@@ -18,3 +18,15 @@
 ### librerie utilizzate
 
 - pygame
+- random 
+- 
+
+## steps
+ 
+- [ ]  creazione del gioco tramite PYgame
+- [ ]  creazione del sistema per prendere gli input dai pulsante
+- [ ] collegamento dei 2 sistemi per gli input
+- [ ] collegamento schermo LCD
+- [ ] collegamento fisico
+- [ ] vari effetti led
+- [ ] sperare che funzioni
