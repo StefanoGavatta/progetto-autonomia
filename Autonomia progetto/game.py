@@ -1,112 +1,99 @@
 import pygame
-import random
+import sys
 
-# Inizializzazione Pygame
+# Inizializzazione di pygame
 pygame.init()
 
-# Configurazione finestra
-WIDTH = 800
-HEIGHT = 600
+# Dimensioni della finestra
+WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pong by Python")
+pygame.display.set_caption("Ping Pong")
 
 # Colori
-WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
-# Configurazione paddle
-PADDLE_WIDTH = 20
-PADDLE_HEIGHT = 100
-PADDLE_SPEED = 5
+# Parametri del gioco
+FPS = 60
+PADDLE_WIDTH, PADDLE_HEIGHT = 15, 100
+BALL_SIZE = 15
+PADDLE_SPEED = 10
+BALL_SPEED_X, BALL_SPEED_Y = 10, 10
 
-# Configurazione palla
-BALL_SIZE = 20
-ball_speed_x = 5 * random.choice((1, -1))
-ball_speed_y = 5 * random.choice((1, -1))
-
-# Inizializzazione paddle
-left_paddle = pygame.Rect(50, HEIGHT//2 - PADDLE_HEIGHT//2, PADDLE_WIDTH, PADDLE_HEIGHT)
-right_paddle = pygame.Rect(WIDTH - 50 - PADDLE_WIDTH, HEIGHT//2 - PADDLE_HEIGHT//2, PADDLE_WIDTH, PADDLE_HEIGHT)
-
-# Inizializzazione palla
-ball = pygame.Rect(WIDTH//2 - BALL_SIZE//2, HEIGHT//2 - BALL_SIZE//2, BALL_SIZE, BALL_SIZE)
+# Creazione degli oggetti
+player1 = pygame.Rect(50, HEIGHT // 2 - PADDLE_HEIGHT // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
+player2 = pygame.Rect(WIDTH - 50 - PADDLE_WIDTH, HEIGHT // 2 - PADDLE_HEIGHT // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
+ball = pygame.Rect(WIDTH // 2 - BALL_SIZE // 2, HEIGHT // 2 - BALL_SIZE // 2, BALL_SIZE, BALL_SIZE)
 
 # Punteggi
-score_a = 0
-score_b = 0
+score1 = 0
+score2 = 0
+font = pygame.font.Font(None, 36)
 
-# Font
-font = pygame.font.Font(None, 74)
+clock = pygame.time.Clock()
+
+def reset_ball():
+    ball.center = (WIDTH // 2, HEIGHT // 2)
+    return BALL_SPEED_X if pygame.time.get_ticks() % 2 == 0 else -BALL_SPEED_X, BALL_SPEED_Y
+
+ball_speed_x, ball_speed_y = reset_ball()
 
 # Game loop
-clock = pygame.time.Clock()
 running = True
-
 while running:
-    # Gestione eventi
+    screen.fill(BLACK)
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-    # Movimento paddle
+    
+    # Movimento dei giocatori
     keys = pygame.key.get_pressed()
     
-    # Player A (sinistra - W/S)
-    if keys[pygame.K_w] and left_paddle.top > 0:
-        left_paddle.y -= PADDLE_SPEED
-    if keys[pygame.K_s] and left_paddle.bottom < HEIGHT:
-        left_paddle.y += PADDLE_SPEED
-
-    # Player B (destra - Frecce su/giù)
-    if keys[pygame.K_UP] and right_paddle.top > 0:
-        right_paddle.y -= PADDLE_SPEED
-    if keys[pygame.K_DOWN] and right_paddle.bottom < HEIGHT:
-        right_paddle.y += PADDLE_SPEED
-
-    # Movimento palla
+    # Giocatore 1 (W e S)
+    if keys[pygame.K_w] and player1.top > 0:
+        player1.y -= PADDLE_SPEED
+    if keys[pygame.K_s] and player1.bottom < HEIGHT:
+        player1.y += PADDLE_SPEED
+    
+    # Giocatore 2 (Frecce su e giù)
+    if keys[pygame.K_UP] and player2.top > 0:
+        player2.y -= PADDLE_SPEED
+    if keys[pygame.K_DOWN] and player2.bottom < HEIGHT:
+        player2.y += PADDLE_SPEED
+    
+    # Movimento della pallina
     ball.x += ball_speed_x
     ball.y += ball_speed_y
-
+    
     # Collisioni con i bordi
     if ball.top <= 0 or ball.bottom >= HEIGHT:
         ball_speed_y *= -1
-
-    # Collisioni con paddle
-    if ball.colliderect(left_paddle) or ball.colliderect(right_paddle):
+    
+    # Collisioni con le racchette
+    if ball.colliderect(player1) or ball.colliderect(player2):
         ball_speed_x *= -1
-        # Aumenta velocità dopo ogni colpo
-        ball_speed_x *= 1.1
-        ball_speed_y *= 1.1
-
-    # Punti
+    
+    # Punteggio
     if ball.left <= 0:
-        score_b += 1
-        ball_reset()
+        score2 += 1
+        ball_speed_x, ball_speed_y = reset_ball()
     if ball.right >= WIDTH:
-        score_a += 1
-        ball_reset()
-
-    def ball_reset():
-        global ball_speed_x, ball_speed_y
-        ball.center = (WIDTH//2, HEIGHT//2)
-        ball_speed_x = 5 * random.choice((1, -1))
-        ball_speed_y = 5 * random.choice((1, -1))
-
-    # Disegno elementi
-    screen.fill(BLACK)
-    pygame.draw.rect(screen, WHITE, left_paddle)
-    pygame.draw.rect(screen, WHITE, right_paddle)
+        score1 += 1
+        ball_speed_x, ball_speed_y = reset_ball()
+    
+    # Disegno
+    pygame.draw.rect(screen, WHITE, player1)
+    pygame.draw.rect(screen, WHITE, player2)
     pygame.draw.ellipse(screen, WHITE, ball)
-    pygame.draw.aaline(screen, WHITE, (WIDTH//2, 0), (WIDTH//2, HEIGHT))
-
-    # Disegno punteggi
-    text = font.render(str(score_a), True, WHITE)
-    screen.blit(text, (WIDTH//4, 20))
-    text = font.render(str(score_b), True, WHITE)
-    screen.blit(text, (3*WIDTH//4, 20))
-
-    # Aggiornamento schermo
+    pygame.draw.aaline(screen, WHITE, (WIDTH // 2, 0), (WIDTH // 2, HEIGHT))
+    
+    # Testo del punteggio
+    score_text = font.render(f"{score1} - {score2}", True, WHITE)
+    screen.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, 20))
+    
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(FPS)
 
 pygame.quit()
+sys.exit()
