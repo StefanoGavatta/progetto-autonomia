@@ -18,7 +18,7 @@ FPS = 60
 PADDLE_WIDTH, PADDLE_HEIGHT = 15, 100
 BALL_SIZE = 15
 PADDLE_SPEED = 10
-BALL_SPEED_X, BALL_SPEED_Y = 10, 10
+BALL_SPEED_X, BALL_SPEED_Y = 5, 5
 
 # Creazione degli oggetti
 player1 = pygame.Rect(50, HEIGHT // 2 - PADDLE_HEIGHT // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
@@ -29,6 +29,11 @@ ball = pygame.Rect(WIDTH // 2 - BALL_SIZE // 2, HEIGHT // 2 - BALL_SIZE // 2, BA
 score1 = 0
 score2 = 0
 font = pygame.font.Font(None, 36)
+
+# Variabili per il delay
+ball_in_play = True
+score_time = None
+SCORE_DELAY = 2000  # 2 secondi in millisecondi
 
 clock = pygame.time.Clock()
 
@@ -62,25 +67,36 @@ while running:
     if keys[pygame.K_DOWN] and player2.bottom < HEIGHT:
         player2.y += PADDLE_SPEED
     
-    # Movimento della pallina
-    ball.x += ball_speed_x
-    ball.y += ball_speed_y
-    
-    # Collisioni con i bordi
-    if ball.top <= 0 or ball.bottom >= HEIGHT:
-        ball_speed_y *= -1
-    
-    # Collisioni con le racchette
-    if ball.colliderect(player1) or ball.colliderect(player2):
-        ball_speed_x *= -1
-    
-    # Punteggio
-    if ball.left <= 0:
-        score2 += 1
-        ball_speed_x, ball_speed_y = reset_ball()
-    if ball.right >= WIDTH:
-        score1 += 1
-        ball_speed_x, ball_speed_y = reset_ball()
+    # Gestione del delay dopo un punto
+    current_time = pygame.time.get_ticks()
+    if not ball_in_play:
+        ball.center = (WIDTH // 2, HEIGHT // 2)
+        if current_time - score_time > SCORE_DELAY:
+            ball_in_play = True
+            ball_speed_x, ball_speed_y = reset_ball()
+    else:
+        # Movimento della pallina
+        ball.x += ball_speed_x
+        ball.y += ball_speed_y
+        
+        # Collisioni con i bordi
+        if ball.top <= 0 or ball.bottom >= HEIGHT:
+            ball_speed_y *= -1
+        
+        # Collisioni con le racchette
+        if ball.colliderect(player1) or ball.colliderect(player2):
+            ball_speed_x *= -1
+        
+        # Punteggio
+        if ball.left <= 0:
+            score2 += 1
+            ball_in_play = False
+            score_time = pygame.time.get_ticks()
+            
+        if ball.right >= WIDTH:
+            score1 += 1
+            ball_in_play = False
+            score_time = pygame.time.get_ticks()
     
     # Disegno
     pygame.draw.rect(screen, WHITE, player1)
